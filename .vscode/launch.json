@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "args": ["--gui"],
+            //"args": ["report", "-c", "config.json", "--sendbox", "--dn", "שלום", "--checks", "--bn 12 --bbn 538 --ban 347082 --cn 123455 --cd 2025-12-15 --ca 50.0"],
+            "env": {
+                "PYTHONUTF8": "1"
+            }
+        }
+    ]
+}

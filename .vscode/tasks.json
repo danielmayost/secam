@@ -1,0 +1,68 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "publish-windows",
+            "type": "shell",
+            "command": ".venv/Scripts/pyinstaller.exe",
+            "args": [
+                "--onefile",
+                "--icon=camera.ico",
+                "--name=secam-win64.exe",
+                "main.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "publish-linux",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "run",
+                "--rm",
+                "-v",
+                "//d/Code/Projects/video-detect:/src",
+                "python:3.12",
+                "bash",
+                "-c",
+                "curl -sL https://netfree.link/dl/unix-ca.sh | sh && pip install -r /src/requirements.txt && cd /src && pyinstaller --onefile --name=secam-linux main.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "publish-all",
+            "dependsOn": ["publish-windows", "publish-linux"],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ]
+}

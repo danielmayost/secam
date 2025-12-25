@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    outputs:
+      win_path: ${{ steps.store_win.outputs.path }}
+      linux_path: ${{ steps.store_linux.outputs.path }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Build with PyInstaller
+      shell: bash
+      run: |
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          pyinstaller --onefile --icon=camera.ico --name=secam-win64.exe main.py
+        else
+          pyinstaller --onefile --name=secam-linux main.py
+        fi
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.os == 'windows-latest' && 'secam-win64.exe' || 'secam-linux' }}
+        path: |
+          dist/secam-win64.exe
+          dist/secam-linux
+
+    # Store output paths for release job
+    - name: Store Windows output path
+      id: store_win
+      if: matrix.os == 'windows-latest'
+      run: echo "path=dist/secam-win64.exe" >> $GITHUB_OUTPUT
+
+    - name: Store Linux output path
+      id: store_linux
+      if: matrix.os == 'ubuntu-latest'
+      run: echo "path=dist/secam-linux" >> $GITHUB_OUTPUT
+
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+        files: |
+          artifacts/secam-win64.exe/secam-win64.exe
+          artifacts/secam-linux/secam-linux
