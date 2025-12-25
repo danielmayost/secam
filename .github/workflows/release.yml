@@ -16,10 +16,6 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
 
-    outputs:
-      win_path: ${{ steps.store_win.outputs.path }}
-      linux_path: ${{ steps.store_linux.outputs.path }}
-
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -34,34 +30,32 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Build with PyInstaller
-      shell: bash
+    # Build Windows normally
+    - name: Build Windows executable
+      if: matrix.os == 'windows-latest'
       run: |
-        if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          pyinstaller --onefile --icon=camera.ico --name=secam-win64.exe main.py
-        else
-          pyinstaller --onefile --name=secam-linux main.py
-        fi
+        pyinstaller --onefile --icon=camera.ico --name=secam-win64.exe main.py
+
+    # Build Linux inside manylinux2014 to avoid GLIBC errors
+    - name: Build Linux executable (manylinux2014)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        docker run --rm \
+          -v $PWD:/src \
+          -w /src \
+          quay.io/pypa/manylinux2014_x86_64:latest \
+          bash -c "
+            /opt/python/cp312-cp312/bin/pip install pyinstaller -r requirements.txt &&
+            /opt/python/cp312-cp312/bin/pyinstaller --onefile --name=secam-linux main.py
+          "
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.os == 'windows-latest' && 'secam-win64.exe' || 'secam-linux' }}
+        name: ${{ matrix.os == 'windows-latest' && 'secam-win64' || 'secam-linux' }}
         path: |
           dist/secam-win64.exe
           dist/secam-linux
-
-    # Store output paths for release job
-    - name: Store Windows output path
-      id: store_win
-      if: matrix.os == 'windows-latest'
-      run: echo "path=dist/secam-win64.exe" >> $GITHUB_OUTPUT
-
-    - name: Store Linux output path
-      id: store_linux
-      if: matrix.os == 'ubuntu-latest'
-      run: echo "path=dist/secam-linux" >> $GITHUB_OUTPUT
-
 
   release:
     needs: build
@@ -81,5 +75,5 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          artifacts/secam-win64.exe/secam-win64.exe
+          artifacts/secam-win64/secam-win64.exe
           artifacts/secam-linux/secam-linux
