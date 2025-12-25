@@ -36,17 +36,17 @@ jobs:
       run: |
         pyinstaller --onefile --icon=camera.ico --name=secam-win64.exe main.py
 
-    # Build Linux inside manylinux2014 to avoid GLIBC errors
-    - name: Build Linux executable (manylinux2014)
+    - name: Build Linux executable using pyinstaller/builder
       if: matrix.os == 'ubuntu-latest'
       run: |
         docker run --rm \
           -v $PWD:/src \
           -w /src \
-          quay.io/pypa/manylinux2014_x86_64:latest \
-          bash -c "
-            /opt/python/cp312-cp312/bin/pip install pyinstaller -r requirements.txt &&
-            /opt/python/cp312-cp312/bin/pyinstaller --onefile --name=secam-linux main.py
+          ghcr.io/pyinstaller/builder:python3.12-alpine \
+          sh -c "
+            pip install -r requirements.txt &&
+            pip install pyinstaller &&
+            pyinstaller --onefile --name=secam-linux main.py
           "
 
     - name: Upload artifact
