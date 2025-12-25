@@ -42,10 +42,9 @@ jobs:
         docker run --rm \
           -v $PWD:/src \
           -w /src \
-          ghcr.io/pyinstaller/builder:python3.12-alpine \
+          machsix/pyinstaller-alpine:latest \
           sh -c "
             pip install -r requirements.txt &&
-            pip install pyinstaller &&
             pyinstaller --onefile --name=secam-linux main.py
           "
 
