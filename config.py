@@ -4,8 +4,8 @@ Configuration settings for the video motion detection application.
 import os
 
 # Default directories (can be changed via GUI)
-INPUT_FOLDER = os.path.join(os.path.dirname(__file__), "input_videos")
-OUTPUT_FOLDER = os.path.join(os.path.dirname(__file__), "output_clips")
+INPUT_FOLDER = os.path.join(os.getcwd(), "input_videos")
+OUTPUT_FOLDER = os.path.join(os.getcwd(), "output_clips")
 
 # Motion detection settings
 MOTION_THRESHOLD = 25  # Threshold for pixel difference to be considered motion

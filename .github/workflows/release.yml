@@ -43,7 +43,17 @@ jobs:
       shell: bash
       run: |
         if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          pyinstaller --onefile --icon=camera.ico --name=secam-win64.exe main.py
+          pyinstaller --onefile --icon=camera.ico --name=secam-win64.exe \
+            --hidden-import=PIL \
+            --hidden-import=PIL._tkinter_finder \
+            --hidden-import=PIL.ImageTk \
+            --hidden-import=PIL.Image \
+            --hidden-import=tkinter \
+            --hidden-import=tkinter.ttk \
+            --hidden-import=_tkinter \
+            --collect-submodules=PIL \
+            --collect-data=PIL \
+            main.py
         else
           pyinstaller --onefile --name=secam-linux \
             --hidden-import=PIL \
@@ -80,7 +90,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Download artifacts
